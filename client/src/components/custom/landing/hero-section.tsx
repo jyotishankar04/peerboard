@@ -1,5 +1,4 @@
-import React from 'react'
-import { ArrowRight, ChevronRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TextEffect } from '@/components/ui/text-effect'
 import { AnimatedGroup } from '@/components/ui/animated-group'
@@ -87,7 +86,9 @@ export default function HeroSection() {
                                     <Link
                                         to="#link"
                                         className="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 dark:border-t-white/5 dark:shadow-zinc-950">
-                                        <span className="text-foreground text-sm">Introducing Support for AI Models</span>
+                                        <span className="text-foreground text-sm">
+                                            Introducing a New Way to Collaborate
+                                        </span>
                                         <span className="dark:border-background block h-4 w-0.5 border-l bg-white dark:bg-zinc-700"></span>
 
                                         <div className="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500">
@@ -108,7 +109,7 @@ export default function HeroSection() {
                                     speedSegment={0.3}
                                     as="h1"
                                     className="mx-auto mt-8 max-w-4xl text-balance text-5xl max-md:font-semibold md:text-7xl lg:mt-16 xl:text-[5.25rem]">
-                                    Modern Solutions for Customer Engagement
+                                    Peer Board – Your Coding Journey, Unified.
                                 </TextEffect>
                                 <TextEffect
                                     per="line"
@@ -117,7 +118,7 @@ export default function HeroSection() {
                                     delay={0.5}
                                     as="p"
                                     className="mx-auto mt-8 max-w-2xl text-balance text-lg">
-                                    Highly customizable components for building modern websites and applications that look and feel the way you mean it.
+                                    Track, share, and celebrate your progress from LeetCode, CodeChef, TUF, and more – with teams and leaderboards, all in one place.
                                 </TextEffect>
 
                                 <AnimatedGroup
@@ -141,7 +142,7 @@ export default function HeroSection() {
                                             size="lg"
                                             className="rounded-xl px-5 text-base">
                                             <Link to="#link">
-                                                <span className="text-nowrap">Start Building</span>
+                                                <span className="text-nowrap">Start Tracking Free</span>
                                             </Link>
                                         </Button>
                                     </div>
@@ -152,7 +153,7 @@ export default function HeroSection() {
                                         variant="ghost"
                                         className="h-10.5 rounded-xl px-5">
                                         <Link to="#link">
-                                            <span className="text-nowrap">Request a demo</span>
+                                            <span className="text-nowrap">See Demo</span>
                                         </Link>
                                     </Button>
                                 </AnimatedGroup>
@@ -192,7 +193,7 @@ export default function HeroSection() {
                         </AnimatedGroup>
                     </div>
                 </section>
-                <section className="bg-background pb-16 pt-16 md:pb-32">
+                {/* <section className="bg-background pb-16 pt-16 md:pb-32">
                     <div className="group relative m-auto max-w-5xl px-6">
                         <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
                             <Link
@@ -280,7 +281,7 @@ export default function HeroSection() {
                             </div>
                         </div>
                     </div>
-                </section>
+                </section> */}
             </main>
         </>
     )
