@@ -1,25 +1,33 @@
 {
   "name": "server",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "format": "prettier --write .",
-    "dev": "bun run --watch src/index.ts",
-    "build": "tsc",
-    "prepare": "husky"
+    "start": "cross-env NODE_ENV=development bun run /src/server.ts",
+    "start:dev": "cross-env NODE_ENV=development bun run --watch /src/server.ts",
+    "db:run": "docker run --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres",
+    "db:start": "docker start postgres",
+    "db:migrate:dev": "dotenv -e .env.dev npx prisma migrate dev --name ",
+    "db:generate:dev": "dotenv -e .env.dev npx prisma generate",
+    "mail:run:dev": "docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog",
+    "mail:start:dev": "docker start mailhog"
   },
   "lint-staged": {
-    "*.{ts,tsx}": ["eslint --fix", "prettier --write"]
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
+    "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.5",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.9.2",
+    "@types/nodemailer": "^7.0.3",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.39.0",
@@ -38,11 +46,22 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
+    "dotenv-cli": "^11.0.0",
     "express": "^5.1.0",
+    "express-jwt": "^8.5.1",
+    "express-useragent": "^2.0.1",
     "helmet": "^8.1.0",
-    "morgan": "^1.10.1"
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "nodemailer": "^7.0.10",
+    "prisma": "^6.19.0",
+    "winston": "^3.18.3",
+    "zod": "^4.1.12"
   }
- 
 }
