@@ -5,6 +5,8 @@ import { express as useragent } from 'express-useragent';
 import cookieParser from "cookie-parser";
 import cors from "cors"
 import _env from "./config";
+import authRoutes from "./routes/auth.route";
+import sessionRoutes from "./routes/session.route";
 
 const app = express();
 
@@ -18,10 +20,11 @@ app.use(cors({
 }))
 
 app.use((req, res, next) => {
-    logger.info(`${req.method} ${req.url}`);
+    logger.info(`${req.method} ${req.url} ${req.useragent?.os} ${req.useragent?.browser} ${req.useragent?.version} ${req.useragent?.source} ${req.useragent?.platform}`);
     next();
 });
-
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/sessions", sessionRoutes);
 app.get('/health', (req:Request, res) => {
 
     res.status(200).send({
