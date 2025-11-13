@@ -16,4 +16,6 @@ export const verifyOtp = async (data: { otp: string; userId: string}) => {
     return (await api.post("/auth/verify-otp", data)).data;
 };
 
-
+export const logout = async () => {
+    return (await api.delete("/auth/logout")).data;
+};

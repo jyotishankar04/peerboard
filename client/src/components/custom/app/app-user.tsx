@@ -29,6 +29,9 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"
 import { Link } from "react-router-dom"
+import { useLogoutMutation } from "@/lib/query"
+import { useEffect } from "react"
+import Loader from "../utils/loader-component"
 
 export function NavUser({
     user,
@@ -42,7 +45,17 @@ export function NavUser({
     type: "sidebar" | "header"
 }) {
     const { isMobile } = useSidebar()
-
+    const { mutateAsync: logout, isPending: logoutPending,isSuccess: logoutSuccess } = useLogoutMutation()
+    useEffect(() => {
+        if (logoutSuccess) {
+            window.location.reload()
+        }
+    }, [logoutSuccess])
+    useEffect(() => {
+        if (logoutPending) {
+            <Loader text="Logging out..." />
+        }
+    }, [logoutPending])
     return (
         <SidebarMenu>
             <SidebarMenuItem>
@@ -118,7 +131,10 @@ export function NavUser({
                             </Link>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive">
+                        <DropdownMenuItem
+                        onClick={() => logout()}
+                        disabled={logoutPending}
+                        variant="destructive">
                             <LogOut />
                             Log out
                         </DropdownMenuItem>

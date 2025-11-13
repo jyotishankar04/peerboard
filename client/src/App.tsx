@@ -22,6 +22,7 @@ import { InviteReferralPage } from "./pages/invite-referral"
 import { AchievementsPage } from "./pages/achievements"
 import { FriendsPage } from "./pages/friends"
 import { ContestDetailsPage } from "./pages/contest-details"
+import OTPVerificationPage from "./pages/otp-verification-page"
 
 
 // const sidebarData = [
@@ -60,14 +61,16 @@ import { ContestDetailsPage } from "./pages/contest-details"
 const App = () => {
   return (
     <Routes>
+
       <Route path="/" element={< Landing />} />
       <Route path="*" element={< Landing />} />
       <Route path="/auth" element={<AuthLayout />} >
         <Route path="login" element={<LoginPage />} />
         <Route path="signup" element={<SignUpPage />} />
+        <Route path="otp-verification" element={<OTPVerificationPage/>} />
       </Route>
-      <Route path="/onboarding" element={<OnboardPage />} />
       <Route path="/app" element={<AppLayout />} >
+      <Route path="onboarding" element={<OnboardPage />} />
         <Route path="" element={<Navigate to="/app/dashboard" />} />
         <Route path={"dashboard"} element={<DashboardPage />} />
         <Route path="activity" element={<ActivityFeedPage />} />

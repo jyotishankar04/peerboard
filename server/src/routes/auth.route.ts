@@ -22,7 +22,7 @@ router.post("/register", authController.register.bind(authController));
 router.post("/verify-otp", authController.verifyOtp.bind(authController));
 router.get("/self",authenticate ,(req, res, next) => authController.self(req as AuthRequest, res, next));
 router.post("/login", (req, res, next) => authController.login(req as AuthRequest, res, next));
-router.get("/logout",authenticate,parseRefreshToken, (req, res, next) => authController.logout(req as AuthRequest, res, next));
+router.delete("/logout",authenticate,parseRefreshToken, (req, res, next) => authController.logout(req as AuthRequest, res, next));
 
 router.post("/refresh",parseRefreshToken, (req, res, next) => authController.refreshToken(req as AuthRequest, res, next));
 

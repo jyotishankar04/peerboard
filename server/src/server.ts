@@ -4,7 +4,6 @@ import type { HttpError } from "http-errors";
 import { express as useragent } from 'express-useragent';
 import cookieParser from "cookie-parser";
 import cors from "cors"
-import _env from "./config";
 import authRoutes from "./routes/auth.route";
 import sessionRoutes from "./routes/session.route";
 
@@ -15,12 +14,12 @@ app.use(useragent());
 
 app.use(cookieParser());
 app.use(cors({
-    origin: [_env.FRONTEND_URL],
+    origin: ["http://localhost:5173"],
     credentials: true
 }))
 
 app.use((req, res, next) => {
-    logger.info(`${req.method} ${req.url} ${req.useragent?.os} ${req.useragent?.browser} ${req.useragent?.version} ${req.useragent?.source} ${req.useragent?.platform}`);
+    logger.info(`${req.method} ${req.url} `);
     next();
 });
 app.use("/api/v1/auth", authRoutes);
