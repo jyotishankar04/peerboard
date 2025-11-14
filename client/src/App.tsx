@@ -67,10 +67,10 @@ const App = () => {
       <Route path="/auth" element={<AuthLayout />} >
         <Route path="login" element={<LoginPage />} />
         <Route path="signup" element={<SignUpPage />} />
-        <Route path="otp-verification" element={<OTPVerificationPage/>} />
+        <Route path="otp-verification" element={<OTPVerificationPage />} />
       </Route>
-      <Route path="/app" element={<AppLayout />} >
       <Route path="onboarding" element={<OnboardPage />} />
+      <Route path="/app" element={<AppLayout />} >
         <Route path="" element={<Navigate to="/app/dashboard" />} />
         <Route path={"dashboard"} element={<DashboardPage />} />
         <Route path="activity" element={<ActivityFeedPage />} />
@@ -81,7 +81,7 @@ const App = () => {
         <Route path="teams/:teamId" element={<TeamDetailsPage />} />
         <Route path="calendar" element={<ContestCalendarPage />} />
         <Route path="settings" element={<SettingsPage />} />
-        <Route path="help" element={<EmptyComponent />} />  
+        <Route path="help" element={<EmptyComponent />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="notifications" element={<NotificationsPage />} />

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { NavUser } from "./app-user";
+import { useAuthStore } from "@/store/auth";
 
 const sidebarData = [
     {
@@ -63,6 +64,7 @@ const sidebarData = [
 export function AppSidebar() {
     const location = useLocation();
     const { open } = useSidebar();
+    const {user} = useAuthStore()
     return (
         <Sidebar variant="inset" collapsible="icon" className="border-r-0">
             <SidebarHeader className="pb-4 p-4">
@@ -125,9 +127,9 @@ export function AppSidebar() {
                 <NavUser
                     type="sidebar"
                     user={{
-                        name: "shadcn",
-                        email: "m@example.com",
-                        avatar: "/avatars/shadcn.jpg",
+                        name: user?.name || "Member Name",
+                        email: user?.email || "",
+                        avatar: user?.avatar ||  "https://github.com/shadcn.png",
                     }} />
             </SidebarFooter>
         </Sidebar>

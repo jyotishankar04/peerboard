@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { useOtpVerification } from "@/lib/query"
 import { useAuthStore } from "@/store/auth"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 const otpSchema = z.object({
   otp: z.string().min(6, "OTP must be 6 characters").max(6, "OTP must be 6 characters"),
@@ -22,12 +23,13 @@ const OTPVerificationPage = () => {
   const [countdown, setCountdown] = useState(60)
   const [canResend, setCanResend] = useState(false)
   
-  const email = searchParams.get('email') || ''
   const userId = searchParams.get('userId') || ''
+  const purpose = searchParams.get('purpose') || ''
 
   const { 
     mutate: verifyOtp, 
     isPending, 
+    isSuccess,
     error,
     data 
   } = useOtpVerification()
@@ -55,6 +57,12 @@ const OTPVerificationPage = () => {
       setCanResend(true)
     }
   }, [countdown])
+  useEffect(() => {
+    if(isSuccess){
+      navigate(data.redirectEndpoint || '/app/dashboard');  
+      toast.success("OTP verified successfully!")
+    }
+  }, [isSuccess, data, setUser, navigate])
 
   const onSubmit = (data: OtpFormData) => {
     if (!userId) {
@@ -64,40 +72,13 @@ const OTPVerificationPage = () => {
     
     verifyOtp({
       otp: data.otp,
-      userId: userId
+      userId: userId,
+      purpose: purpose || '',
     })
   }
 
-  // Handle successful verification
-  useEffect(() => {
-    if (data?.user) {
-      setUser(data.user)
-      // Redirect to dashboard or onboarding based on user status
-      const redirectPath = data.user.isVerified ? '/' : '/onboarding'
-      navigate(redirectPath)
-    }
-  }, [data, setUser, navigate])
 
-  const handleResendOtp = async () => {
-    if (!canResend) return
 
-    try {
-      // Simulate API call to resend OTP
-      console.log("Resending OTP to:", email)
-      // You would typically call an API endpoint here
-      // await resendOtp({ email, userId })
-      
-      // Reset countdown
-      setCountdown(60)
-      setCanResend(false)
-      
-      // Show success message
-      alert("Verification code has been resent to your email!")
-    } catch (error) {
-      console.error("Failed to resend OTP:", error)
-      alert("Failed to resend verification code. Please try again.")
-    }
-  }
 
   const handleGoBack = () => {
     navigate('/auth/login')
@@ -191,7 +172,7 @@ const OTPVerificationPage = () => {
                     type="button"
                     variant="link"
                     className="p-0 h-auto text-sm"
-                    onClick={handleResendOtp}
+                    // onClick={handleResendOtp}
                   >
                     Resend code
                   </Button>

@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { logout, register, self, signin, verifyOtp } from "./api";
+import { logout, onboard, register, self, signin, verifyOtp } from "./api";
 
 export const useSignUpMutation = () => useMutation({
   mutationFn: register,
@@ -54,3 +54,13 @@ export const useLogoutMutation = () => useMutation({
     console.error("Logout failed:", error);
   }
 });
+export const useOnboardMutation = () => useMutation({
+  mutationFn:onboard,
+  mutationKey: ["onboard"],
+  onSuccess: (data) => {
+    console.log("Onboarding successful:", data);
+  },
+  onError: (error) => {
+    console.error("Onboarding failed:", error);
+  }
+})

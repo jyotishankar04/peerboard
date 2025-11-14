@@ -10,9 +10,11 @@ import { NavUser } from "@/components/custom/app/app-user";
 import { ModeToggle } from "@/components/custom/utils/mode-toggle";
 import { NotificationDropdown } from "@/components/custom/notifications/notification-dropdown";
 import ProtectionProvider from "@/providers/protection-provider";
+import { useAuthStore } from "@/store/auth";
 
 
 const AppLayout = () => {
+    const {user} = useAuthStore();
     return (
         <ProtectionProvider>
 
@@ -27,7 +29,7 @@ const AppLayout = () => {
                                 <ModeToggle />
                                 <NotificationDropdown />
                                 <NavUser
-                                    user={{ name: "shadcn", email: "shadcn", avatar: "https://github.com/shadcn.png" }}
+                                    user={{ name: user?.name || "", email: user?.email || "", avatar: user?.avatar || "https://github.com/shadcn.png" }}
                                     type="header"
                                 />
                             </div>

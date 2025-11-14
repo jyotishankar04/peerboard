@@ -21,17 +21,18 @@ import {
   SparklesIcon,
   WifiSyncIcon
 } from "lucide-react";
+import { useAuthStore } from "@/store/auth";
 
 const DashboardPage = () => {
     const [activeTab, setActiveTab] = useState("global");
     const [syncStatus, setSyncStatus] = useState<{ [key: string]: string }>({});
-    
+   const  { user } = useAuthStore();
     // Mock user data
     const userData = {
-        name: "Shadcn User",
-        username: "shadcn",
-        avatar: "https://github.com/shadcn.png",
-        isVerified: true
+        name: user?.name || "",
+        email: user?.email || "",
+        avatar: user?.avatar || "https://github.com/shadcn.png",
+        isVerified: user?.isVerified || false
     };
 
     // Welcome messages based on time of day

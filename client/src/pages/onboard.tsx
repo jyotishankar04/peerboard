@@ -19,25 +19,26 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { Logo } from "@/components/custom/landing/logo"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import {  useNavigate, useSearchParams } from "react-router-dom"
+import { useOnboardMutation } from "@/lib/query"
+import { toast } from "sonner"
+import Loader from "@/components/custom/utils/loader-component"
+import ProtectionProvider from "@/providers/protection-provider"
 
 // Type definitions
 interface OnboardingData {
-    goals: string[]
+    primaryGoals: string[]
     experienceLevel: string
-    interests: string[]
-    status: string
-    programmingLanguages: string[]
-    timeCommitment: string
-    preferredLearning: string[]
-    additionalNotes?: string
+    areasOfInterest: string[]
+    dedicationHoursPerWeek: number
+    currentRole: string
+    primaryProgrammingLanguage: string
 }
 
 type OnboardingField = keyof OnboardingData
 
-// Step 1: Welcome & Goals
+// Step 1: Primary Goals
 const Step1 = ({ data, updateData, onNext }: {
     data: OnboardingData
     updateData: (field: OnboardingField, value: OnboardingData[OnboardingField]) => void
@@ -48,15 +49,17 @@ const Step1 = ({ data, updateData, onNext }: {
         "Prepare for technical interviews",
         "Improve competitive programming skills",
         "Learn system design concepts",
-        "Enhance problem-solving abilities"
+        "Enhance problem-solving abilities",
+        "Advance my career",
+        "Learn new programming languages"
     ]
 
     const handleGoalChange = (goal: string, checked: boolean) => {
-        const currentGoals = data.goals || []
+        const currentGoals = data.primaryGoals || []
         if (checked) {
-            updateData('goals', [...currentGoals, goal])
+            updateData('primaryGoals', [...currentGoals, goal])
         } else {
-            updateData('goals', currentGoals.filter((g: string) => g !== goal))
+            updateData('primaryGoals', currentGoals.filter((g: string) => g !== goal))
         }
     }
 
@@ -64,7 +67,7 @@ const Step1 = ({ data, updateData, onNext }: {
         <FieldSet>
             <FieldLegend>Welcome to Peer Board! 🎯</FieldLegend>
             <FieldDescription>
-                Let's personalize your experience. What brings you here?
+                Let's personalize your experience. What are your primary goals?
             </FieldDescription>
             <FieldSeparator />
 
@@ -75,7 +78,7 @@ const Step1 = ({ data, updateData, onNext }: {
                         <div key={goal} className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
                             <Checkbox
                                 id={`goal-${goal}`}
-                                checked={data.goals?.includes(goal)}
+                                checked={data.primaryGoals?.includes(goal)}
                                 onCheckedChange={(checked) => handleGoalChange(goal, checked === true)}
                             />
                             <label htmlFor={`goal-${goal}`} className="text-sm font-medium cursor-pointer flex-1">
@@ -89,7 +92,7 @@ const Step1 = ({ data, updateData, onNext }: {
             <div className="flex justify-end mt-8">
                 <Button
                     onClick={onNext}
-                    disabled={!data.goals?.length}
+                    disabled={!data.primaryGoals?.length}
                     className="px-8"
                 >
                     Continue
@@ -160,7 +163,7 @@ const Step2 = ({ data, updateData, onNext, onBack }: {
     )
 }
 
-// Step 3: Interests & Focus Areas
+// Step 3: Area of Interest
 const Step3 = ({ data, updateData, onNext, onBack }: {
     data: OnboardingData
     updateData: (field: OnboardingField, value: OnboardingData[OnboardingField]) => void
@@ -177,23 +180,27 @@ const Step3 = ({ data, updateData, onNext, onBack }: {
         "System Design",
         "Object-Oriented Design",
         "Database Design",
-        "Concurrency"
+        "Concurrency",
+        "Machine Learning",
+        "Web Development",
+        "Mobile Development",
+        "DevOps & Infrastructure"
     ]
 
     const handleInterestChange = (interest: string, checked: boolean) => {
-        const currentInterests = data.interests || []
+        const currentInterests = data.areasOfInterest || []
         if (checked) {
-            updateData('interests', [...currentInterests, interest])
+            updateData('areasOfInterest', [...currentInterests, interest])
         } else {
-            updateData('interests', currentInterests.filter((i: string) => i !== interest))
+            updateData('areasOfInterest', currentInterests.filter((i: string) => i !== interest))
         }
     }
 
     return (
         <FieldSet>
-            <FieldLegend>Focus Areas</FieldLegend>
+            <FieldLegend>Areas of Interest</FieldLegend>
             <FieldDescription>
-                Select topics you want to focus on improving
+                Select topics and domains you're interested in
             </FieldDescription>
             <FieldSeparator />
 
@@ -204,7 +211,7 @@ const Step3 = ({ data, updateData, onNext, onBack }: {
                         <div key={interest} className="flex items-center space-x-2">
                             <Checkbox
                                 id={`interest-${interest}`}
-                                checked={data.interests?.includes(interest)}
+                                checked={data.areasOfInterest?.includes(interest)}
                                 onCheckedChange={(checked) => handleInterestChange(interest, checked === true)}
                             />
                             <label htmlFor={`interest-${interest}`} className="text-sm font-medium cursor-pointer">
@@ -219,7 +226,7 @@ const Step3 = ({ data, updateData, onNext, onBack }: {
                 <Button variant="outline" onClick={onBack}>
                     Back
                 </Button>
-                <Button onClick={onNext} disabled={!data.interests?.length}>
+                <Button onClick={onNext} disabled={!data.areasOfInterest?.length}>
                     Continue
                 </Button>
             </div>
@@ -227,86 +234,61 @@ const Step3 = ({ data, updateData, onNext, onBack }: {
     )
 }
 
-// Step 4: Learning Preferences
+// Step 4: Time Commitment
 const Step4 = ({ data, updateData, onNext, onBack }: {
     data: OnboardingData
     updateData: (field: OnboardingField, value: OnboardingData[OnboardingField]) => void
     onNext: () => void
     onBack: () => void
 }) => {
-    const learningStyles = [
-        "Practice with timed challenges",
-        "Study with video explanations",
-        "Join study groups",
-        "Compete in contests",
-        "Review others' solutions",
-        "Work on real-world projects"
-    ]
-
     const timeOptions = [
-        "1-5 hours/week",
-        "5-10 hours/week",
-        "10-20 hours/week",
-        "20+ hours/week"
-    ] as const
-
-    const handleLearningStyleChange = (style: string, checked: boolean) => {
-        const currentStyles = data.preferredLearning || []
-        if (checked) {
-            updateData('preferredLearning', [...currentStyles, style])
-        } else {
-            updateData('preferredLearning', currentStyles.filter((s: string) => s !== style))
-        }
-    }
+        { value: 1, label: "1 hour/week", description: "Casual learning" },
+        { value: 3, label: "3 hours/week", description: "Regular practice" },
+        { value: 5, label: "5 hours/week", description: "Serious commitment" },
+        { value: 10, label: "10 hours/week", description: "Dedicated learning" },
+        { value: 15, label: "15+ hours/week", description: "Intensive study" }
+    ]
 
     return (
         <FieldSet>
-            <FieldLegend>Learning Style</FieldLegend>
+            <FieldLegend>Time Commitment</FieldLegend>
             <FieldDescription>
-                How do you prefer to learn and practice?
+                How much time can you dedicate to learning each week?
             </FieldDescription>
             <FieldSeparator />
 
             <Field>
-                <FieldLabel>Preferred learning methods:</FieldLabel>
+                <FieldLabel>Weekly dedication hours</FieldLabel>
                 <FieldGroup className="grid grid-cols-1 gap-3 mt-4">
-                    {learningStyles.map((style) => (
-                        <div key={style} className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
-                            <Checkbox
-                                id={`style-${style}`}
-                                checked={data.preferredLearning?.includes(style)}
-                                onCheckedChange={(checked) => handleLearningStyleChange(style, checked === true)}
-                            />
-                            <label htmlFor={`style-${style}`} className="text-sm font-medium cursor-pointer flex-1">
-                                {style}
-                            </label>
+                    {timeOptions.map((option) => (
+                        <div
+                            key={option.value}
+                            className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${data.dedicationHoursPerWeek === option.value
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border hover:border-primary/50'
+                                }`}
+                            onClick={() => updateData('dedicationHoursPerWeek', option.value)}
+                        >
+                            <div className="flex items-center h-5">
+                                <div className={`w-4 h-4 rounded-full border-2 ${data.dedicationHoursPerWeek === option.value
+                                    ? 'border-primary bg-primary'
+                                    : 'border-muted-foreground'
+                                    }`} />
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-medium text-sm">{option.label}</div>
+                                <div className="text-xs text-muted-foreground mt-1">{option.description}</div>
+                            </div>
                         </div>
                     ))}
                 </FieldGroup>
-            </Field>
-
-            <Field>
-                <FieldLabel>How much time can you dedicate weekly?</FieldLabel>
-                <Select
-                    value={data.timeCommitment}
-                    onValueChange={(value: string) => updateData('timeCommitment', value)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select time commitment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {timeOptions.map((option) => (
-                            <SelectItem key={option} value={option}>{option}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
             </Field>
 
             <div className="flex justify-between mt-8">
                 <Button variant="outline" onClick={onBack}>
                     Back
                 </Button>
-                <Button onClick={onNext}>
+                <Button onClick={onNext} disabled={!data.dedicationHoursPerWeek}>
                     Continue
                 </Button>
             </div>
@@ -321,9 +303,15 @@ const Step5 = ({ data, updateData, onSubmit, onBack }: {
     onSubmit: () => void
     onBack: () => void
 }) => {
-    const statusOptions = [
+    const roleOptions = [
         "Student",
-        "Professional Developer",
+        "Software Engineer",
+        "Frontend Developer",
+        "Backend Developer",
+        "Full-stack Developer",
+        "Data Scientist",
+        "DevOps Engineer",
+        "Product Manager",
         "Looking for Job",
         "Career Changer",
         "Hobbyist"
@@ -331,24 +319,25 @@ const Step5 = ({ data, updateData, onSubmit, onBack }: {
 
     const languages = [
         "Python",
-        "JavaScript/TypeScript",
+        "JavaScript",
+        "TypeScript",
         "Java",
         "C++",
         "C#",
         "Go",
         "Rust",
+        "Swift",
+        "Kotlin",
+        "PHP",
+        "Ruby",
         "Other"
     ] as const
 
-    const handleAdditionalNotesChange = (value: string) => {
-        updateData('additionalNotes', value)
-    }
-
     return (
         <FieldSet>
-            <FieldLegend>Almost There! 🚀</FieldLegend>
+            <FieldLegend>Complete Your Profile 🚀</FieldLegend>
             <FieldDescription>
-                Just a few more details to complete your profile
+                Final details to personalize your learning experience
             </FieldDescription>
             <FieldSeparator />
 
@@ -356,15 +345,15 @@ const Step5 = ({ data, updateData, onSubmit, onBack }: {
                 <Field>
                     <FieldLabel>Current role</FieldLabel>
                     <Select
-                        value={data.status}
-                        onValueChange={(value: string) => updateData('status', value)}
+                        value={data.currentRole}
+                        onValueChange={(value: string) => updateData('currentRole', value)}
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Select your role" />
                         </SelectTrigger>
                         <SelectContent>
-                            {statusOptions.map((status) => (
-                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                            {roleOptions.map((role) => (
+                                <SelectItem key={role} value={role}>{role}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -373,8 +362,8 @@ const Step5 = ({ data, updateData, onSubmit, onBack }: {
                 <Field>
                     <FieldLabel>Primary programming language</FieldLabel>
                     <Select
-                        value={data.programmingLanguages?.[0] || ""}
-                        onValueChange={(value: string) => updateData('programmingLanguages', [value])}
+                        value={data.primaryProgrammingLanguage}
+                        onValueChange={(value: string) => updateData('primaryProgrammingLanguage', value)}
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Select language" />
@@ -388,21 +377,25 @@ const Step5 = ({ data, updateData, onSubmit, onBack }: {
                 </Field>
             </div>
 
-            <Field>
-                <FieldLabel>Anything else we should know? (Optional)</FieldLabel>
-                <Textarea
-                    placeholder="Specific goals, target companies, or learning preferences..."
-                    className="min-h-[100px]"
-                    value={data.additionalNotes || ""}
-                    onChange={(e) => handleAdditionalNotesChange(e.target.value)}
-                />
-            </Field>
+            <div className="bg-muted/50 p-4 rounded-lg mt-6">
+                <h4 className="font-medium text-sm mb-2">Profile Summary</h4>
+                <div className="text-xs text-muted-foreground space-y-1">
+                    <div><strong>Goals:</strong> {data.primaryGoals?.join(', ') || 'None selected'}</div>
+                    <div><strong>Experience:</strong> {data.experienceLevel || 'Not specified'}</div>
+                    <div><strong>Interests:</strong> {data.areasOfInterest?.join(', ') || 'None selected'}</div>
+                    <div><strong>Weekly hours:</strong> {data.dedicationHoursPerWeek || 'Not specified'}</div>
+                </div>
+            </div>
 
             <div className="flex justify-between mt-8">
                 <Button variant="outline" onClick={onBack}>
                     Back
                 </Button>
-                <Button onClick={onSubmit} className="px-8">
+                <Button
+                    onClick={onSubmit}
+                    disabled={!data.currentRole || !data.primaryProgrammingLanguage}
+                    className="px-8"
+                >
                     Complete Setup
                 </Button>
             </div>
@@ -415,15 +408,16 @@ const OnboardPage = () => {
     const [searchParams] = useSearchParams()
     const [currentStep, setCurrentStep] = useState(1)
     const [isAnimating, setIsAnimating] = useState(false)
+    const { mutateAsync: onboard, isPending: isOnboarding, isSuccess: isOnboarded, isError: onboardError } = useOnboardMutation()
+
 
     const [formData, setFormData] = useState<OnboardingData>({
-        goals: [],
+        primaryGoals: [],
         experienceLevel: "",
-        interests: [],
-        status: "",
-        programmingLanguages: [],
-        timeCommitment: "",
-        preferredLearning: []
+        areasOfInterest: [],
+        dedicationHoursPerWeek: 0,
+        currentRole: "",
+        primaryProgrammingLanguage: ""
     })
 
     // Initialize step from URL or default to 1
@@ -441,6 +435,24 @@ const OnboardPage = () => {
         url.searchParams.set('step', currentStep.toString())
         window.history.replaceState({}, '', url.toString())
     }, [currentStep])
+
+    useEffect(() => {
+        if (isOnboarded) {
+            toast.success("Onboarding completed successfully!")
+            navigate('/app/dashboard')
+        }
+    }, [isOnboarded, navigate])
+    useEffect(() => {
+        if (onboardError) {
+            toast.error("Onboarding failed!")
+            console.error("Onboarding failed:", onboardError);
+        }
+    }, [onboardError])
+    if (isOnboarding) {
+        return (
+            <Loader text="Completing onboarding..." />
+        )
+    }
 
     const updateFormData = (field: OnboardingField, value: OnboardingData[OnboardingField]) => {
         setFormData(prev => ({
@@ -469,12 +481,10 @@ const OnboardPage = () => {
         }
     }
 
-    const handleSubmit = () => {
-        console.log("Form submitted:", formData)
-        // Here you would typically send the data to your backend
-        alert("Onboarding completed successfully!")
-        navigate('/app/dashboard') // Redirect to dashboard
+    const handleSubmit = async () => {
+        await onboard(formData);
     }
+
 
     const renderStep = () => {
         const stepProps = {
@@ -501,41 +511,43 @@ const OnboardPage = () => {
     }
 
     return (
-        <div className="flex min-h-screen flex-col items-center bg-linear-to-br from-background to-muted px-4 py-8 md:py-16">
-            <div className="w-full max-w-2xl">
-                <div className="scale-125 mb-8 flex justify-center">
-                    <Logo />
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-foreground">
-                            Step {currentStep} of 5
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                            {Math.round((currentStep / 5) * 100)}% complete
-                        </span>
+        <ProtectionProvider>
+            <div className="flex min-h-screen flex-col items-center bg-linear-to-br from-background to-muted px-4 py-8 md:py-16">
+                <div className="w-full max-w-2xl">
+                    <div className="scale-125 mb-8 flex justify-center">
+                        <Logo />
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2.5">
-                        <div
-                            className="bg-primary h-2.5 rounded-full transition-all duration-500 ease-out"
-                            style={{ width: `${(currentStep / 5) * 100}%` }}
-                        />
-                    </div>
-                </div>
 
-                {/* Animated Step Content */}
-                <div
-                    className={`transition-all duration-300 transform ${isAnimating
-                        ? 'opacity-0 translate-x-4'
-                        : 'opacity-100 translate-x-0'
-                        }`}
-                >
-                    {renderStep()}
+                    {/* Progress Bar */}
+                    <div className="mb-8">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-medium text-foreground">
+                                Step {currentStep} of 5
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                                {Math.round((currentStep / 5) * 100)}% complete
+                            </span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2.5">
+                            <div
+                                className="bg-primary h-2.5 rounded-full transition-all duration-500 ease-out"
+                                style={{ width: `${(currentStep / 5) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Animated Step Content */}
+                    <div
+                        className={`transition-all duration-300 transform ${isAnimating
+                            ? 'opacity-0 translate-x-4'
+                            : 'opacity-100 translate-x-0'
+                            }`}
+                    >
+                        {renderStep()}
+                    </div>
                 </div>
             </div>
-        </div>
+        </ProtectionProvider>
     )
 }
 
