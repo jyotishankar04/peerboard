@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors"
 import authRoutes from "./routes/auth.route";
 import sessionRoutes from "./routes/session.route";
-
+import userRoutes from './routes/user.route'
 const app = express();
 
 app.use(express.json());
@@ -24,6 +24,7 @@ app.use((req, res, next) => {
 });
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/sessions", sessionRoutes);
+app.use("/api/v1/users", userRoutes);
 app.get('/health', (req:Request, res) => {
 
     res.status(200).send({

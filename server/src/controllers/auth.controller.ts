@@ -7,6 +7,7 @@ import type UserService from "../services/user.service";
 import createHttpError from "http-errors";
 import _env from "../config";
 import type { AuthRequest } from "../types";
+import { _purposes } from "../constants";
 
 
 export class AuthController {
@@ -70,7 +71,14 @@ export class AuthController {
         })
     }
     public async verifyOtp(req: Request, res: Response, next: NextFunction) {
-        const { userId, code } = req.body;
+        const { userId, otp } = req.body;
+        const {purpose} = req.query;
+
+        if (!userId || !otp) {
+            next(createHttpError(400, "Invalid request"));
+            return;
+        }
+
         const os = req.useragent?.os;
         const browser = req.useragent?.browser;
         const version = req.useragent?.version;
@@ -85,7 +93,7 @@ export class AuthController {
             platform
         }
 
-        const { success, message } = await this.otpService.verifyOtp(userId, code);
+        const { success, message } = await this.otpService.verifyOtp(userId, otp);
         if (!success) {
             next(createHttpError(400, message));
             return;
@@ -109,7 +117,7 @@ export class AuthController {
         res.cookie("accessToken", accessToken, { ...this.cookieOptions, expires: new Date(Date.now() + 7 * 1000 * 60 * 60 * 24) });
         res.cookie("refreshToken", refreshToken, { ...this.cookieOptions, expires: new Date(Date.now() + 7 * 1000 * 60 * 60 * 24) });
 
-        return res.status(200).json({ success: true, message: "OTP verified successfully" });
+        return res.status(200).json({ success: true, message: "OTP verified successfully",redirectEndpoint: purpose === _purposes.REGISTER ? "/onboarding" : "/app/dashboard" });
     }
     public async login(req: AuthRequest, res: Response, next: NextFunction) {
         const { email, password } = req.body

@@ -33,14 +33,54 @@ model User {
   role       Role
   isVerified Boolean @default(false) @map("is_verified")
 
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   sessions Session[]
-
+  userExtraInfo UserExtraInfo?
+  socialInfo SocialInfo?
   @@map("users")
 }
 
+model UserExtraInfo {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id") @unique
+  bio       String?  @map("bio")
+  location  String?  @map("location")
+
+  primaryGoals String[] @map("primary_goals")
+  experienceLevel String?  @map("experience_level")
+  areasOfInterest String[] @map("areas_of_interest")
+  dedicationHoursPerWeek Int? @map("dedication_hours_per_week")
+  currentRole String? @map("current_role")
+  primaryProgrammingLanguage String? @map("primary_programming_language")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_extra_info")
+}
+
+model SocialInfo {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id") @unique
+  twitter   String?  @map("twitter")
+  linkedin  String?  @map("linkedin")
+  github    String?  @map("github")
+  instagram String?  @map("instagram")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("social_info")
+}
 model UserIdentity {
   id             String   @id @default(uuid())
   userId         String   @map("user_id")

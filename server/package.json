@@ -6,7 +6,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development bun run /src/index.ts",
     "start:dev": "cross-env NODE_ENV=development bun run --watch /src/index.ts",
-    "db:run": "docker run --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres",
+    "db:run": "docker run --name postgres -p 5432:5432 -v ./pgdata:/var/lib/postgresql -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres",
     "db:start": "docker start postgres",
     "db:migrate:dev": "dotenv -e .env.dev npx prisma migrate dev --name ",
     "db:generate:dev": "dotenv -e .env.dev npx prisma generate",
@@ -46,6 +46,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@types/express-useragent": "^1.0.5",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

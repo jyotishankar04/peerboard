@@ -42,3 +42,23 @@ export const resetPasswordSchema = z.object({
         confirmPassword: data.confirmPassword.trim(),
     }
 })
+
+// Onboard User Validation
+export const onboardUserSchema = z.object({
+    primaryGoals: z.array(z.string()).min(1, "At least one primary goal is required"),
+    experienceLevel: z.string().min(1, "Experience level is required"),
+    areasOfInterest: z.array(z.string()).min(1, "At least one area of interest is required"),
+    dedicationHoursPerWeek: z.number().min(1, "Dedication hours per week is required"),
+    currentRole: z.string().min(1, "Current role is required"),
+    primaryProgrammingLanguage: z.string().min(1, "Primary programming language is required"),
+}).transform(data => {
+    return {
+        primaryGoals: data.primaryGoals.map(goal => goal.trim()),
+        experienceLevel: data.experienceLevel.trim(),
+        areasOfInterest: data.areasOfInterest.map(interest => interest.trim()),
+        dedicationHoursPerWeek: data.dedicationHoursPerWeek,
+        currentRole: data.currentRole.trim(),
+        primaryProgrammingLanguage: data.primaryProgrammingLanguage.trim(),
+    }
+})
+export type OnboardUserProps = z.infer<typeof onboardUserSchema>
