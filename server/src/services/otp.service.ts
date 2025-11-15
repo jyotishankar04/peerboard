@@ -65,7 +65,7 @@ export class OtpService {
 
             this.prisma.user.update({
                 where: { id: userId },
-                data: { isVerified: true },
+                data: { isVerified: true,emailVerifiedAt: new Date() },
             })
         ])
 

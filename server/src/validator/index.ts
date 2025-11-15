@@ -62,3 +62,36 @@ export const onboardUserSchema = z.object({
     }
 })
 export type OnboardUserProps = z.infer<typeof onboardUserSchema>
+
+
+// !Update user
+
+export const updateUserSchema = z.object({
+    name: z.string().min(3).max(50).optional(),
+    bio: z.string().max(160).optional(),
+    location: z.string().max(100).optional(),
+    username: z.string().min(3).max(30).optional(),
+    socialInfo: z.object({
+        twitter: z.string().optional(),
+        linkedin: z.string().optional(),
+        github: z.string().optional(),
+        instagram: z.string().optional(),
+    }).optional(),
+    userPreference: z.object({
+        emailNotifications: z.boolean().optional(),
+        pushNotifications: z.boolean().optional(),
+        profileVisibility: z.enum(["PUBLIC", "PRIVATE", "FRIENDS_ONLY"]).optional(),
+        theme: z.enum(["LIGHT", "DARK"]).optional(),
+    }).optional(),
+}).transform(data => {
+    return {
+        name: data.name?.trim(),
+        bio: data.bio?.trim(),
+        username: data.username?.trim(),
+        location: data.location?.trim(),
+        socialInfo: data.socialInfo,
+        userPreference: data.userPreference,
+    }
+})
+
+export type UpdateUserProps = z.infer<typeof updateUserSchema>

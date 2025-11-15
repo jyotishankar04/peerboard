@@ -5,12 +5,14 @@ class AuthService {
     constructor(private prisma: PrismaClient) { }
     public async create(body: RegisterProps): Promise<{ data: User, success: boolean }> {
         const { name, email, password } = body;
+        const username = email.split("@")[0]!;
         const user = await this.prisma.user.create({
             data: {
                 name,
                 email,
                 password,
                 role: Role.USER,
+                username, 
             }
         })
 

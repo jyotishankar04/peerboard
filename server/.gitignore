@@ -10,6 +10,7 @@ dist
 
 # code coverage
 coverage
+pgdata
 *.lcov
 
 .env.dev
