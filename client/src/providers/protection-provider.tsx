@@ -8,16 +8,18 @@ import { self } from "@/lib/api"
 import { useNavigate } from "react-router-dom"
 import Loader from "@/components/custom/utils/loader-component"
 import { toast } from "sonner"
+import { useTheme } from "./theme-provider"
 
 
 const getSelf = async () => {
     const res = await self()
     return res.data
 }
-const ProtectionProvider = ({children}: {children: React.ReactNode}) => {
+const ProtectionProvider = ({ children }: { children: React.ReactNode }) => {
     const { setUser } = useAuthStore()
+    const { setTheme } = useTheme()
     const router = useNavigate()
-    const { data: selfData, isLoading, isError  } = useQuery({
+    const { data: selfData, isLoading, isError } = useQuery({
         queryKey: ['self'],
         queryFn: getSelf,
         retry: (failureCount, error) => {
@@ -25,14 +27,15 @@ const ProtectionProvider = ({children}: {children: React.ReactNode}) => {
             return failureCount < 2
         },
     })
-
     useEffect(() => {
-        if (selfData){
+        if (selfData) {
             setUser(selfData)
+            const theme = selfData.userPreference?.theme as string
+            setTheme(theme.toString().toLowerCase() as "light" | "dark" | "system" || 'dark')
             toast.success('Authenticated successfully!')
-            }
-            
-    }, [selfData, setUser])
+        }
+
+    }, [selfData, setUser, setTheme])
 
     useEffect(() => {
         if (isError) {
@@ -40,12 +43,12 @@ const ProtectionProvider = ({children}: {children: React.ReactNode}) => {
         }
     }, [isError, router])
 
-    if (isLoading) return <Loader  text="Authenticating..."/>
+    if (isLoading) return <Loader text="Authenticating..." />
 
 
-  return (
-      <>{children}</>
-  )
+    return (
+        <>{children}</>
+    )
 }
 
 export default ProtectionProvider

@@ -1,6 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { logout, onboard, register, self, signin, verifyOtp } from "./api";
-
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getUserProfile, logout, onboard, register, self, signin, updateUser, verifyOtp } from "./api";
+import type { UpdateUserSchema, UserProfile } from "@/types";
+import { toast } from "sonner";
 export const useSignUpMutation = () => useMutation({
   mutationFn: register,
   mutationKey: ["signup"],
@@ -64,3 +65,32 @@ export const useOnboardMutation = () => useMutation({
     console.error("Onboarding failed:", error);
   }
 })
+
+// User and Settings Queries and Mutations
+
+export const useUserProfileQuery = () => {
+  return useQuery({
+    queryKey: ["user-profile"],
+    queryFn: getUserProfile,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+};
+
+export const useUpdateUserMutation = () =>{
+  const queryClient = useQueryClient();
+  return useMutation({
+  mutationKey: ["update-user"],
+  mutationFn: async (data: UpdateUserSchema) => {
+    return await updateUser(data);
+  },
+  onSuccess: (data) => {
+    queryClient.setQueryData(["user-profile"], data);
+    queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+    toast.success("User updated successfully");
+  },
+  onError: (error) => {
+    console.error("Update user failed:", error);
+  }
+});
+} 

@@ -1,3 +1,4 @@
+import type { UpdateUserSchema, UserProfile } from "@/types";
 import { api } from "./axios";
 
 export const register = async (data: { name: string; email: string; password: string; }) => {
@@ -22,4 +23,19 @@ export const logout = async () => {
 
 export const onboard = async (data: {primaryGoals: string[]; experienceLevel: string; areasOfInterest: string[]; dedicationHoursPerWeek: number; currentRole: string; primaryProgrammingLanguage: string; }) => {
     return (await api.post("/users/onboard", data)).data;
+}
+
+
+// Profile and Settings
+export const updateProfile = async (data: { name?: string; email?: string; currentPassword?: string; newPassword?: string; }) => {
+    return (await api.put("/users/profile", data)).data;
+}
+export const getUserProfile = async () => {
+    return (await api.get<{
+        data: UserProfile
+    }>(`/users/me`)).data;
+}
+
+export const updateUser = async (data:UpdateUserSchema) => {
+    return (await api.patch("/users", data)).data;
 }

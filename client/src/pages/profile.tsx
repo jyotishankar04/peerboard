@@ -1,17 +1,14 @@
 // src/pages/profile.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import {
@@ -30,6 +27,13 @@ import {
     CommunityHelperBadge
 } from "@/components/custom/badges/achievement-badge";
 import { AchievementsGrid } from "@/components/custom/badges/achievements-grid";
+import { useUpdateUserMutation, useUserProfileQuery } from "@/lib/query";
+import Loader from "@/components/custom/utils/loader-component";
+import { Edit, Github, Instagram, Linkedin, MapPin, Twitter } from "lucide-react";
+import { useForm } from "react-hook-form";
+import type { UpdateUserSchema } from "@/types";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 const achievementComponents = [
     <HundredProblemsBadge key={1} />,
@@ -51,24 +55,30 @@ const achievementComponents = [
 
 const ProfilePage = () => {
     const [isEditing, setIsEditing] = useState(false);
+    const { data: user, isLoading: userLoading, isSuccess: userSuccess } = useUserProfileQuery();
+    const { mutateAsync: updateUser, isPending: updateUserLoading, isSuccess: updateUserSuccess } = useUpdateUserMutation()
     const [profileVisibility, setProfileVisibility] = useState("public");
 
-    // Mock data
-    const userData = {
-        name: "Shadcn User",
-        username: "shadcn",
-        email: "shadcn@example.com",
-        avatar: "https://github.com/shadcn.png",
-        bio: "Passionate coder | Competitive programmer | Team lead",
-        location: "San Francisco, CA",
-        institution: "Stanford University",
-        isVerified: true,
-        socialLinks: {
-            github: "https://github.com/shadcn",
-            linkedin: "https://linkedin.com/in/shadcn",
-            website: "https://shadcn.com"
-        }
-    };
+    const { register, handleSubmit, } = useForm({
+        defaultValues: {
+            name: user?.data?.name,
+            username: user?.data?.username,
+            bio: user?.data?.userExtraInfo?.bio,
+            location: user?.data?.userExtraInfo?.location,
+            socialInfo: {
+                github: user?.data?.socialInfo?.github,
+                linkedin: user?.data?.socialInfo?.linkedin,
+                twitter: user?.data?.socialInfo?.twitter,
+                instagram: user?.data?.socialInfo?.instagram,
+            },
+            userPreference: {
+                profileVisibility: user?.data?.userPreference?.profileVisibility,
+                emailNotifications: user?.data?.userPreference?.emailNotifications,
+                pushNotifications: user?.data?.userPreference?.pushNotifications,
+                theme: user?.data?.userPreference?.theme
+            }
+        } as UpdateUserSchema
+    });
 
     const stats = {
         totalProblems: 1250,
@@ -152,126 +162,162 @@ const ProfilePage = () => {
         };
         return icons[type as keyof typeof icons] || "📝";
     };
+    useEffect(()=>{
+        if(updateUserSuccess){
+            toast.success("User updated successfully")
+        } 
+    },[updateUserSuccess])
+    const submitUpdate = async (data: UpdateUserSchema) => {
+        await updateUser({
+            name: data.name,
+            username: data.username,
+            bio: data.bio,
+            location: data.location
+        });
+        setIsEditing(false);
+    }
+    if (userLoading) {
+        return <Loader text="Your profile is loading..." />;
+    }
 
     return (
-        <div className="w-full max-w-7xl p-6 space-y-6">
+        userSuccess && (<div className="w-full max-w-7xl p-6 space-y-6">
             {/* User Summary Header */}
             <Card>
                 <CardContent className="p-6">
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
-                        <div className="relative">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={userData.avatar} />
-                                <AvatarFallback>SU</AvatarFallback>
+                    <div className="flex flex-col lg:flex-row items-start gap-6">
+                        {/* Avatar Section */}
+                        <div className="relative group">
+                            <Avatar className="h-24 w-24 border-2 border-background">
+                                <AvatarImage src={user?.data?.avatar} />
+                                <AvatarFallback className="text-lg font-semibold">
+                                    {user?.data?.name?.charAt(0)}
+                                </AvatarFallback>
                             </Avatar>
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button
                                         variant="secondary"
-                                        size="sm"
-                                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                                        size="icon"
+                                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full shadow-md"
                                     >
-                                        ✏️
+                                        <Edit className="h-4 w-4" />
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>Edit Avatar</DialogTitle>
-                                        <DialogDescription>
-                                            Upload a new profile picture
-                                        </DialogDescription>
+                                        <DialogTitle>Update Profile Picture</DialogTitle>
                                     </DialogHeader>
                                     <div className="space-y-4">
                                         <Input type="file" accept="image/*" />
-                                        <Button>Save Changes</Button>
+                                        <Button className="w-full">Upload</Button>
                                     </div>
                                 </DialogContent>
                             </Dialog>
                         </div>
 
-                        <div className="flex-1 space-y-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                <h1 className="text-3xl font-bold">{userData.name}</h1>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-muted-foreground">@{userData.username}</span>
-                                    {userData.isVerified && (
-                                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        {/* Profile Info */}
+                        <div className="flex-1 space-y-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <h1 className="text-2xl font-bold">{user?.data?.name}</h1>
+                                    <span className="text-muted-foreground">@{user?.data?.username}</span>
+                                    {user?.data?.isVerified && (
+                                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
                                             Verified
                                         </Badge>
                                     )}
                                 </div>
+
+                                <p className="text-muted-foreground leading-relaxed">
+                                    {user?.data?.userExtraInfo?.bio || "No bio yet"}
+                                </p>
                             </div>
 
-                            <p className="text-lg text-muted-foreground">{userData.bio}</p>
+                            {/* Location */}
+                            {user?.data?.userExtraInfo?.location && (
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <MapPin className="h-4 w-4 mr-1" />
+                                    {user?.data?.userExtraInfo?.location}
+                                </div>
+                            )}
 
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                                <span>📍 {userData.location}</span>
-                                <span>🎓 {userData.institution}</span>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <Button variant="outline" size="sm" asChild>
-                                    <a href={userData.socialLinks.github} target="_blank" rel="noopener noreferrer">
-                                        GitHub
-                                    </a>
-                                </Button>
-                                <Button variant="outline" size="sm" asChild>
-                                    <a href={userData.socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
-                                        LinkedIn
-                                    </a>
-                                </Button>
-                                <Button variant="outline" size="sm" asChild>
-                                    <a href={userData.socialLinks.website} target="_blank" rel="noopener noreferrer">
-                                        Website
-                                    </a>
-                                </Button>
+                            {/* Social Links */}
+                            <div className="flex flex-wrap gap-2">
+                                {user?.data?.socialInfo?.github && (
+                                    <Button variant="outline" size="icon" className="gap-2">
+                                        <Github className="h-4 w-4" />
+                                    </Button>
+                                )}
+                                {user?.data?.socialInfo?.linkedin && (
+                                    <Button variant="outline" size="icon" className="gap-2">
+                                        <Linkedin className="h-4 w-4" />
+                                    </Button>
+                                )}
+                                {user?.data?.socialInfo?.twitter && (
+                                    <Button variant="outline" size="icon" className="gap-2">
+                                        <Twitter className="h-4 w-4" />
+                                    </Button>
+                                )}
+                                {user?.data?.socialInfo?.instagram && (
+                                    <Button variant="outline" size="icon" className="gap-2">
+                                        <Instagram className="h-4 w-4" />
+                                    </Button>
+                                )}
                             </div>
                         </div>
 
+                        {/* Edit Profile Dialog */}
                         <Dialog open={isEditing} onOpenChange={setIsEditing}>
                             <DialogTrigger asChild>
-                                <Button>Edit Profile</Button>
+                                <Button variant="outline" className="lg:self-start">
+                                    Edit Profile
+                                </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
+                            <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle>Edit Profile</DialogTitle>
-                                    <DialogDescription>
-                                        Update your profile information and preferences
-                                    </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="name">Full Name</Label>
-                                            <Input id="name" defaultValue={userData.name} />
+                                            <Label>Full Name</Label>
+                                            <Input
+                                                {...register("name")}
+                                                defaultValue={user?.data?.name} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="username">Username</Label>
-                                            <Input id="username" defaultValue={userData.username} />
+                                            <Label>Username</Label>
+                                            <Input
+                                                {...register("username")}
+                                                defaultValue={user?.data?.username} />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="bio">Bio</Label>
-                                        <Input id="bio" defaultValue={userData.bio} />
+                                        <Label>Bio</Label>
+                                        <Input
+                                            {...register("bio")}
+                                            defaultValue={user?.data?.userExtraInfo?.bio} />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="location">Location</Label>
-                                            <Input id="location" defaultValue={userData.location} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="institution">Institution</Label>
-                                            <Input id="institution" defaultValue={userData.institution} />
-                                        </div>
+                                    <div className="space-y-2">
+                                        <Label>Location</Label>
+                                        <Input
+                                            {...register("location")}
+                                            defaultValue={user?.data?.userExtraInfo?.location} />
                                     </div>
-                                    <Button onClick={() => setIsEditing(false)}>Save Changes</Button>
+                                    <Button
+                                        disabled={updateUserLoading}
+                                        onClick={handleSubmit(submitUpdate)}
+                                        className="w-full">
+                                        {updateUserLoading && <Spinner />}
+                                        Update Profile
+                                    </Button>
                                 </div>
                             </DialogContent>
                         </Dialog>
                     </div>
                 </CardContent>
             </Card>
-
             {/* Statistics Overview */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
                 <Card>
@@ -481,7 +527,7 @@ const ProfilePage = () => {
                             </div>
                         </div>
                         <Select
-                           
+
                             value={profileVisibility}
                         >
                             <SelectTrigger aria-readonly>Privacy</SelectTrigger>
@@ -537,7 +583,7 @@ const ProfilePage = () => {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </div>)
     );
 };
 

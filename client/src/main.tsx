@@ -14,7 +14,7 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <App />
-      <Toaster position="top-right" />
+      <Toaster position="top-right" richColors style={{ scale: "0.8"}} />
     </ThemeProvider>
     </QueryClientProvider>
    </BrowserRouter>
